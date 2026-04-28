@@ -87,4 +87,4 @@ cd dashboard
 streamlit run dashboard.py
 
 ## Link Dashboard
-https://aipun-bike-sharing-analysis.streamlit.app/
+https://aipunpratama-bike-sharing-analysis.streamlit.app/
