@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 # 1. PAGE SETUP & CONFIGURATION
 st.set_page_config(
@@ -14,13 +15,17 @@ st.set_page_config(
 sns.set_theme(style="white")
 
 # 2. LOAD DATA
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 @st.cache_data
 def load_data():
-    day_df = pd.read_csv("day_cleaned.csv")
-    hour_df = pd.read_csv("hour_cleaned.csv")
+    day_path = os.path.join(current_dir, "day_cleaned.csv")
+    hour_path = os.path.join(current_dir, "hour_cleaned.csv")
+    
+    day_df = pd.read_csv(day_path)
+    hour_df = pd.read_csv(hour_path)
+    
     return day_df, hour_df
-
-day_df, hour_df = load_data()
 
 # 3. SIDEBAR
 with st.sidebar:
