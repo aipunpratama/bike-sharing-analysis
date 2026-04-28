@@ -14,7 +14,7 @@ st.set_page_config(
 
 sns.set_theme(style="white")
 
-# 2. LOAD DATA
+# 2. LOAD DATA (Safe Path Handling)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 @st.cache_data
@@ -22,10 +22,18 @@ def load_data():
     day_path = os.path.join(current_dir, "day_cleaned.csv")
     hour_path = os.path.join(current_dir, "hour_cleaned.csv")
     
+    # Cek apakah file ada sebelum dibaca
+    if not os.path.exists(day_path) or not os.path.exists(hour_path):
+        st.error(f"Data files not found in {current_dir}. Please check your GitHub folder structure.")
+        st.stop()
+        
     day_df = pd.read_csv(day_path)
     hour_df = pd.read_csv(hour_path)
     
     return day_df, hour_df
+
+# Memanggil data ke dalam variabel global
+day_df, hour_df = load_data()
 
 # 3. SIDEBAR
 with st.sidebar:
@@ -34,7 +42,7 @@ with st.sidebar:
     st.markdown("Use the filters below to adjust the charts:")
     
     # Year Filter
-    year_options = ["All Years"] + list(day_df['yr'].unique())
+    year_options = ["All Years"] + sorted(list(day_df['yr'].unique()))
     selected_year = st.selectbox("📅 Select Year:", year_options)
     
     # Season Filter
@@ -42,18 +50,18 @@ with st.sidebar:
     selected_season = st.selectbox("🍂 Select Season:", season_options)
     
     st.markdown("---")
-    st.caption("© 2026 by Data Analyst")
+    st.caption("© 2026 by Muhaipun Pratama")
 
 # 4. DYNAMIC DATA PREPROCESSING
 filtered_day = day_df.copy()
 filtered_hour = hour_df.copy()
 
-# Apply Year filter if not selecting "All Years"
+# Apply Year filter
 if selected_year != "All Years":
     filtered_day = filtered_day[filtered_day['yr'] == selected_year]
     filtered_hour = filtered_hour[filtered_hour['yr'] == selected_year]
 
-# Apply Season filter if not selecting "All Seasons"
+# Apply Season filter
 if selected_season != "All Seasons":
     filtered_day = filtered_day[filtered_day['season'] == selected_season]
     filtered_hour = filtered_hour[filtered_hour['season'] == selected_season]
@@ -99,7 +107,8 @@ with tab1:
         fig_col1, text_col1 = st.columns((2, 1))
         with fig_col1:
             fig, ax = plt.subplots(figsize=(10, 6))
-            sns.barplot(x='weathersit', y='cnt', data=q1_plot, palette='Blues_r', ax=ax)
+            # Tambahkan hue dan legend=False untuk menghindari warning FutureWarning
+            sns.barplot(x='weathersit', y='cnt', data=q1_plot, hue='weathersit', palette='Blues_r', ax=ax, legend=False)
             ax.set_title(f'Total Rentals by Weather ({selected_hour})', fontsize=14, fontweight='bold')
             ax.set_xlabel('Weather Condition', fontsize=12)
             ax.set_ylabel('Total Rentals', fontsize=12)
@@ -109,7 +118,7 @@ with tab1:
             st.info("**Interactive Insight:**")
             st.write("Try changing the **Hour Category** option above. You will see that during **Rush Hour**, the rental gap between clear and bad weather is much larger than during Non-Rush Hour.")
 
-# TAB 2: Business Question 2 (Dynamic) 
+# TAB 2: Business Question 2
 with tab2:
     st.subheader(f"User Comparison: Working Day vs Holiday ({selected_year} - {selected_season})")
     
@@ -158,3 +167,5 @@ with tab2:
             
             You will notice an interesting pattern: in bad weather, **Casual** users (usually active on holidays) almost disappear, leaving mostly **Registered** users who still ride due to daily mobility needs.
             """)
+
+st.caption(f'Final Project: Bike Sharing Analysis | Data Source: Capital Bikeshare')
